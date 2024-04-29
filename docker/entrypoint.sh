@@ -109,7 +109,7 @@ if [ ${CSS_UPDATE} -eq 1 ]; then
         cd ${temp_folder}
         curl -sSLO $(curl -sSL "https://api.github.com/repos/roflmuffin/CounterStrikeSharp/releases/latest" | jq -r '.assets[] | select(.name | test("linux")) | .browser_download_url')
         # Extract files
-        unzip counterstrikesharp-build-*.zip -d /home/container/game/csgo/
+        unzip -o counterstrikesharp-build-*.zip -d /home/container/game/csgo/
         # Update version file
         echo ${latest_version} > ${version_file}
         # Cleanup
