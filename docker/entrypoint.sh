@@ -88,8 +88,8 @@ if [ -f "${GAMEINFO_FILE}" ]; then
     fi
 fi
 
-temp_folder = "/home/container/temp"
-version_file = "/home/container/game/CSS_VERSION.txt"
+temp_folder="/home/container/temp"
+version_file="/home/container/game/CSS_VERSION.txt"
 # Update CounterStrikeSharp
 if [ ${CSS_UPDATE} -eq 1 ]; then
     # Check CSS version and download latest release if needed
