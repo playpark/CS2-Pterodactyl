@@ -115,6 +115,7 @@ if [ ${CSS_UPDATE} -eq 1 ]; then
         # Cleanup
         rm -rf ${temp_folder}
         echo "CounterStrikeSharp updated to ${latest_version}"
+        cd /home/container
     fi    
 fi
 
