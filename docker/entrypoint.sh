@@ -91,33 +91,47 @@ fi
 temp_folder="/home/container/temp"
 version_file="/home/container/game/CSS_VERSION.txt"
 # Update CounterStrikeSharp
-if [ ${CSS_UPDATE} -eq 1 ]; then
-    # Check CSS version and download latest release if needed
-    # Get latest release version from GitHub
-    latest_version=$(curl -sSL "https://api.github.com/repos/roflmuffin/CounterStrikeSharp/releases/latest" | jq -r '.tag_name')
-    # Get current version from file
-    if [ -f ${version_file} ]; then
-        current_version=$(cat ${version_file})
-    else
-        current_version="0.0.0"
+update_css() {
+    if [ ${CSS_UPDATE} -eq 1 ]; then
+        # Check CSS version and download latest release if needed
+        # Get latest release version from GitHub
+        latest_version=$(curl -sSL "https://api.github.com/repos/roflmuffin/CounterStrikeSharp/releases/latest" | jq -r '.tag_name')
+        # Check if curl command was successful
+        if [ $? -ne 0 ]; then
+            echo "Failed to fetch latest version. Please check your internet connection."
+            return
+        fi
+        # Get current version from file
+        if [ -f ${version_file} ]; then
+            current_version=$(cat ${version_file})
+        else
+            current_version="0.0.0"
+        fi
+        # Check if version is different
+        if [ "${latest_version}" != "${current_version}" ]; then
+            # Download latest release
+            echo "Downloading CounterStrikeSharp ${latest_version}"
+            mkdir -p ${temp_folder}
+            cd ${temp_folder}
+            curl -sSLO $(curl -sSL "https://api.github.com/repos/roflmuffin/CounterStrikeSharp/releases/latest" | jq -r '.assets[] | select(.name | test("linux")) | .browser_download_url')
+            # Check if curl command was successful
+            if [ $? -ne 0 ]; then
+                echo "Failed to download latest version. Please check your internet connection."
+                return
+            fi
+            # Extract files
+            unzip -o counterstrikesharp-build-*.zip -d /home/container/game/csgo/
+            # Update version file
+            echo ${latest_version} > ${version_file}
+            # Cleanup
+            rm -rf ${temp_folder}
+            echo "CounterStrikeSharp updated to ${latest_version}"
+            cd /home/container
+        fi    
     fi
-    # Check if version is different
-    if [ "${latest_version}" != "${current_version}" ]; then
-        # Download latest release
-        echo "Downloading CounterStrikeSharp ${latest_version}"
-        mkdir -p ${temp_folder}
-        cd ${temp_folder}
-        curl -sSLO $(curl -sSL "https://api.github.com/repos/roflmuffin/CounterStrikeSharp/releases/latest" | jq -r '.assets[] | select(.name | test("linux")) | .browser_download_url')
-        # Extract files
-        unzip -o counterstrikesharp-build-*.zip -d /home/container/game/csgo/
-        # Update version file
-        echo ${latest_version} > ${version_file}
-        # Cleanup
-        rm -rf ${temp_folder}
-        echo "CounterStrikeSharp updated to ${latest_version}"
-        cd /home/container
-    fi    
-fi
+}
+
+update_css
 
 # Replace Startup Variables
 MODIFIED_STARTUP=`eval echo $(echo ${STARTUP} | sed -e 's/{{/${/g' -e 's/}}/}/g')`
