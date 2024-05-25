@@ -62,7 +62,7 @@ if [ ! -z ${SRCDS_APPID} ]; then
         # echo "SteamCMD Launch: ${STEAMCMD}"
         eval ${STEAMCMD}
 
-         # Issue #44 - We can't symlink this, causes "File not found" errors. As a mitigation, copy over the updated binary on start.
+        # Issue #44 - We can't symlink this, causes "File not found" errors. As a mitigation, copy over the updated binary on start.
         cp -f ./steamcmd/linux32/steamclient.so ./.steam/sdk32/steamclient.so
         cp -f ./steamcmd/linux64/steamclient.so ./.steam/sdk64/steamclient.so
     fi
@@ -117,7 +117,7 @@ update_css() {
             echo "Downloading CounterStrikeSharp ${latest_version}"
             mkdir -p ${temp_folder}
             cd ${temp_folder}
-            curl -sSLO $(curl -sSL "https://api.github.com/repos/roflmuffin/CounterStrikeSharp/releases/latest" | jq -r '.assets[] | select(.name | test("linux")) | .browser_download_url')
+            curl -sSLO $(curl -sSL "https://api.github.com/repos/roflmuffin/CounterStrikeSharp/releases/latest" | jq -r '.assets[] | select(.name | test("linux")) | .browser_download_url' | head -n 1)
             # Check if curl command was successful
             if [ $? -ne 0 ]; then
                 echo "Failed to download latest version. Please check your internet connection."
