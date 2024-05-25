@@ -148,4 +148,13 @@ update_css() {
 update_css
 
 # Replace Startup Variables
-MODIFIED_STARTUP=`eval echo $(echo ${STARTUP} | sed -e 's/{{/${/g' -e 's/}}/
+MODIFIED_STARTUP=$(eval "echo \"${STARTUP}\"" | sed -e 's/{{/${/g' -e 's/}}/}/g')
+echo ":/home/container$ ${MODIFIED_STARTUP}"
+
+# Run the Server
+if [ -n "${MODIFIED_STARTUP}" ]; then
+    eval "${MODIFIED_STARTUP}"
+else
+    echo "Error: Modified startup command is empty."
+fi
+
