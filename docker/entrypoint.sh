@@ -122,9 +122,9 @@ update_css() {
             
             # Determine download URL based on the presence of the dotnet folder
             if [ -d "${dotnet_folder}" ]; then
-                download_url=$(curl -sSL "https://api.github.com/repos/roflmuffin/CounterStrikeSharp/releases/latest" | jq -r '.assets[] | select(.name | test("linux-no-runtime")) | .browser_download_url' | head -n 1)
+                download_url=$(curl -sSL "https://api.github.com/repos/roflmuffin/CounterStrikeSharp/releases/latest" | jq -r '.assets[] | select(.name | test("counterstrikesharp-build.*-linux")) | .browser_download_url' | head -n 1)
             else
-                download_url=$(curl -sSL "https://api.github.com/repos/roflmuffin/CounterStrikeSharp/releases/latest" | jq -r '.assets[] | select(.name | test("linux-runtime")) | .browser_download_url' | head -n 1)
+                download_url=$(curl -sSL "https://api.github.com/repos/roflmuffin/CounterStrikeSharp/releases/latest" | jq -r '.assets[] | select(.name | test("counterstrikesharp-with-runtime-build.*-linux")) | .browser_download_url' | head -n 1)
             fi
 
             curl -sSLO ${download_url}
