@@ -134,7 +134,7 @@ update_css() {
                 return
             fi
             # Extract files
-            unzip -o counterstrikesharp-build-* -d /home/container/game/csgo/
+            unzip -o counterstrikesharp-* -d /home/container/game/csgo/
             # Update version file
             echo ${latest_version} > ${version_file}
             # Cleanup
