@@ -1,155 +1,151 @@
-{
-    "_comment": "DO NOT EDIT: FILE GENERATED AUTOMATICALLY BY PTERODACTYL PANEL - PTERODACTYL.IO",
-    "meta": {
-        "version": "PTDL_v2",
-        "update_url": null
-    },
-    "exported_at": "2024-04-29T23:44:45+02:00",
-    "name": "Counter-Strike 2 (CS#)",
-    "author": "dollan@playpark.se",
-    "description": "Counter-Strike is a multiplayer first-person shooter video game developed by Valve. This image is based on Valve's Steam Runtime 3 platform (codenamed SNIPER) and was created to run both CSGO and CS2 without issues. This egg features the ability to automatically update and install CS# on server start if enabled. This is forked from https://github.com/1zc/CS2-Pterodactyl full credit to the original author.",
-    "features": [
-        "gsl_token",
-        "steam_disk_space"
-    ],
-    "docker_images": {
-        "SteamRT3": "ghcr.io\/playpark\/steamrt3-pterodactyl:latest"
-    },
-    "file_denylist": [],
-    "startup": ".\/game\/cs2.sh -dedicated +ip {{SERVER_IP}} -port {{SERVER_PORT}} {{SRCDS_MAP}} {{SRCDS_WS_MAP}} -maxplayers {{SRCDS_MAXPLAYERS}} +sv_setsteamaccount {{STEAM_ACC}} +sv_hibernate_when_empty 0",
-    "config": {
-        "files": "{}",
-        "startup": "{\r\n    \"done\": \"Connection to Steam servers successful\"\r\n}",
-        "logs": "{}",
-        "stop": "quit"
-    },
-    "scripts": {
-        "installation": {
-            "script": "#!\/bin\/bash\r\n# steamcmd Base Installation Script\r\n#\r\n# Server Files: \/mnt\/server\r\n## just in case someone removed the defaults.\r\nif [ \"${STEAM_USER}\" == \"\" ]; then\r\nSTEAM_USER=anonymous\r\nSTEAM_PASS=\"\"\r\nSTEAM_AUTH=\"\"\r\nfi\r\n## download and install steamcmd\r\ncd \/tmp\r\nmkdir -p \/mnt\/server\/steamcmd\r\ncurl -sSL -o steamcmd.tar.gz https:\/\/steamcdn-a.akamaihd.net\/client\/installer\/steamcmd_linux.tar.gz\r\ntar -xzvf steamcmd.tar.gz -C \/mnt\/server\/steamcmd\r\nmkdir -p \/mnt\/server\/steamapps # Fix steamcmd disk write error when this folder is missing\r\ncd \/mnt\/server\/steamcmd\r\n# SteamCMD fails otherwise for some reason, even running as root.\r\n# This is changed at the end of the install process anyways.\r\nchown -R root:root \/mnt\r\nexport HOME=\/mnt\/server\r\n## install game using steamcmd\r\n.\/steamcmd.sh +force_install_dir \/mnt\/server +login ${SRCDS_LOGIN} ${SRCDS_LOGIN_PASS} ${STEAM_AUTH} +app_update 730 ${EXTRA_FLAGS} +quit ## other flags may be needed depending on install. looking at you cs 1.6\r\n## set up 32 bit libraries\r\nmkdir -p \/mnt\/server\/.steam\/sdk32\r\ncp -v linux32\/steamclient.so ..\/.steam\/sdk32\/steamclient.so\r\n## set up 64 bit libraries\r\nmkdir -p \/mnt\/server\/.steam\/sdk64\r\ncp -v linux64\/steamclient.so ..\/.steam\/sdk64\/steamclient.so",
-            "container": "ghcr.io\/pterodactyl\/installers:debian",
-            "entrypoint": "bash"
-        }
-    },
-    "variables": [
-        {
-            "name": "Map",
-            "description": "The default map for the server.",
-            "env_variable": "SRCDS_MAP",
-            "default_value": "de_dust2",
-            "user_viewable": true,
-            "user_editable": true,
-            "rules": "max:100",
-            "field_type": "text"
-        },
-        {
-            "name": "Workshop",
-            "description": "The default map for the server.",
-            "env_variable": "SRCDS_WS_MAP",
-            "default_value": "",
-            "user_viewable": true,
-            "user_editable": true,
-            "rules": "max:100",
-            "field_type": "text"
-        },
-        {
-            "name": "Max Players",
-            "description": "The maximum number of players the server can host.",
-            "env_variable": "SRCDS_MAXPLAYERS",
-            "default_value": "12",
-            "user_viewable": true,
-            "user_editable": true,
-            "rules": "required|numeric",
-            "field_type": "text"
-        },
-        {
-            "name": "Disable Updates",
-            "description": "Set to 1 to stop updates.",
-            "env_variable": "SRCDS_STOP_UPDATE",
-            "default_value": "0",
-            "user_viewable": true,
-            "user_editable": true,
-            "rules": "required|numeric",
-            "field_type": "text"
-        },
-        {
-            "name": "Validate Install",
-            "description": "Toggles SteamCMD validation of game server files. Set to 0 to disable.",
-            "env_variable": "SRCDS_VALIDATE",
-            "default_value": "0",
-            "user_viewable": true,
-            "user_editable": true,
-            "rules": "required|numeric",
-            "field_type": "text"
-        },
-        {
-            "name": "SteamCMD Beta Name",
-            "description": "Set the ID of the beta to install and launch. Leave blank to disable Beta loading.",
-            "env_variable": "SRCDS_BETAID",
-            "default_value": "",
-            "user_viewable": true,
-            "user_editable": true,
-            "rules": "max:64",
-            "field_type": "text"
-        },
-        {
-            "name": "SteamCMD Beta Password",
-            "description": "If required, set the password to use to access a Beta depot. Leave blank to disable.",
-            "env_variable": "SRCDS_BETAPASS",
-            "default_value": "",
-            "user_viewable": true,
-            "user_editable": true,
-            "rules": "max:64",
-            "field_type": "text"
-        },
-        {
-            "name": "SteamCMD Login Username",
-            "description": "Set SteamCMD Login Username. Leave blank to disable.",
-            "env_variable": "SRCDS_LOGIN",
-            "default_value": "",
-            "user_viewable": true,
-            "user_editable": true,
-            "rules": "required|max:64|alpha_dash",
-            "field_type": "text"
-        },
-        {
-            "name": "SteamCMD Login Password",
-            "description": "Set SteamCMD Login Password.",
-            "env_variable": "SRCDS_LOGIN_PASS",
-            "default_value": "",
-            "user_viewable": true,
-            "user_editable": true,
-            "rules": "required|max:64|alpha_dash",
-            "field_type": "text"
-        },
-        {
-            "name": "Steam Account Token",
-            "description": "The Steam Account Token required for the server to be displayed publicly.",
-            "env_variable": "STEAM_ACC",
-            "default_value": "",
-            "user_viewable": true,
-            "user_editable": true,
-            "rules": "required|string|alpha_num|size:32",
-            "field_type": "text"
-        },
-        {
-            "name": "Source AppID",
-            "description": "NOT VISIBLE TO USERS. DO NOT EDIT.",
-            "env_variable": "SRCDS_APPID",
-            "default_value": "730",
-            "user_viewable": true,
-            "user_editable": true,
-            "rules": "required|numeric",
-            "field_type": "text"
-        },
-        {
-            "name": "Enable CS#",
-            "description": "Enable CounterStrikeSharp, automatically updates on each server start.",
-            "env_variable": "CSS_UPDATE",
-            "default_value": "0",
-            "user_viewable": true,
-            "user_editable": true,
-            "rules": "required|boolean|max:5",
-            "field_type": "text"
-        }
-    ]
+#!/bin/bash
+cd /home/container
+sleep 1
+# Make internal Docker IP address available to processes.
+export INTERNAL_IP=`ip route get 1 | awk '{print $NF;exit}'`
+
+# Update Source Server
+if [ ! -z ${SRCDS_APPID} ]; then
+    if [ ${SRCDS_STOP_UPDATE} -eq 0 ]; then
+        STEAMCMD=""
+        echo "Starting SteamCMD for AppID: ${SRCDS_APPID}"
+        if [ ! -z ${SRCDS_BETAID} ]; then
+            if [ ! -z ${SRCDS_BETAPASS} ]; then
+                if [ ${SRCDS_VALIDATE} -eq 1 ]; then
+                    echo "SteamCMD Validate Flag Enabled! Triggered install validation for AppID: ${SRCDS_APPID}"
+                    echo "THIS MAY WIPE CUSTOM CONFIGURATIONS! Please stop the server if this was not intended."
+                    if [ ! -z ${SRCDS_LOGIN} ]; then
+                        STEAMCMD="./steamcmd/steamcmd.sh +login ${SRCDS_LOGIN} ${SRCDS_LOGIN_PASS} +force_install_dir /home/container +app_update ${SRCDS_APPID} -beta ${SRCDS_BETAID} -betapassword ${SRCDS_BETAPASS} validate +quit"
+                    else
+                        STEAMCMD="./steamcmd/steamcmd.sh +login anonymous +force_install_dir /home/container +app_update ${SRCDS_APPID} -beta ${SRCDS_BETAID} -betapassword ${SRCDS_BETAPASS} validate +quit"
+                    fi
+                else
+                    if [ ! -z ${SRCDS_LOGIN} ]; then
+                        STEAMCMD="./steamcmd/steamcmd.sh +login ${SRCDS_LOGIN} ${SRCDS_LOGIN_PASS} +force_install_dir /home/container +app_update ${SRCDS_APPID} -beta ${SRCDS_BETAID} -betapassword ${SRCDS_BETAPASS} +quit"
+                    else
+                        STEAMCMD="./steamcmd/steamcmd.sh +login anonymous +force_install_dir /home/container +app_update ${SRCDS_APPID} -beta ${SRCDS_BETAID} -betapassword ${SRCDS_BETAPASS} +quit"
+                    fi
+                fi
+            else
+                if [ ${SRCDS_VALIDATE} -eq 1]; then
+                    if [ ! -z ${SRCDS_LOGIN} ]; then
+                        STEAMCMD="./steamcmd/steamcmd.sh +login ${SRCDS_LOGIN} ${SRCDS_LOGIN_PASS} +force_install_dir /home/container +app_update ${SRCDS_APPID} -beta ${SRCDS_BETAID} validate +quit"
+                    else
+                        STEAMCMD="./steamcmd/steamcmd.sh +login anonymous +force_install_dir /home/container +app_update ${SRCDS_APPID} -beta ${SRCDS_BETAID} validate +quit"
+                    fi
+                else
+                    if [ ! -z ${SRCDS_LOGIN} ]; then
+                        STEAMCMD="./steamcmd/steamcmd.sh +login ${SRCDS_LOGIN} ${SRCDS_LOGIN_PASS} +force_install_dir /home/container +app_update ${SRCDS_APPID} -beta ${SRCDS_BETAID} +quit"
+                    else
+                        STEAMCMD="./steamcmd/steamcmd.sh +login anonymous +force_install_dir /home/container +app_update ${SRCDS_APPID} -beta ${SRCDS_BETAID} +quit"
+                    fi
+                fi
+            fi
+        else
+            if [ ${SRCDS_VALIDATE} -eq 1 ]; then
+                echo "SteamCMD Validate Flag Enabled! Triggered install validation for AppID: ${SRCDS_APPID}"
+                echo "THIS MAY WIPE CUSTOM CONFIGURATIONS! Please stop the server if this was not intended."
+                if [ ! -z ${SRCDS_LOGIN} ]; then
+                    STEAMCMD="./steamcmd/steamcmd.sh +login ${SRCDS_LOGIN} ${SRCDS_LOGIN_PASS} +force_install_dir /home/container +app_update ${SRCDS_APPID} validate +quit"
+                else
+                    STEAMCMD="./steamcmd/steamcmd.sh +login anonymous +force_install_dir /home/container +app_update ${SRCDS_APPID} validate +quit"
+                fi
+            else
+                if [ ! -z ${SRCDS_LOGIN} ]; then
+                    STEAMCMD="./steamcmd/steamcmd.sh +login ${SRCDS_LOGIN} ${SRCDS_LOGIN_PASS} +force_install_dir /home/container +app_update ${SRCDS_APPID} +quit"
+                else
+                    STEAMCMD="./steamcmd/steamcmd.sh +login anonymous +force_install_dir /home/container +app_update ${SRCDS_APPID} +quit"
+                fi
+            fi
+        fi
+
+        # echo "SteamCMD Launch: ${STEAMCMD}"
+        eval ${STEAMCMD}
+
+        # Issue #44 - We can't symlink this, causes "File not found" errors. As a mitigation, copy over the updated binary on start.
+        cp -f ./steamcmd/linux32/steamclient.so ./.steam/sdk32/steamclient.so
+        cp -f ./steamcmd/linux64/steamclient.so ./.steam/sdk64/steamclient.so
+    fi
+fi
+
+# Edit /home/container/game/csgo/gameinfo.gi to add MetaMod path
+# Credit: https://github.com/ghostcap-gaming/ACMRS-cs2-metamod-update-fix/blob/main/acmrs.sh
+GAMEINFO_FILE="/home/container/game/csgo/gameinfo.gi"
+GAMEINFO_ENTRY="			Game	csgo/addons/metamod" 
+if [ -f "${GAMEINFO_FILE}" ]; then
+    if grep -q "Game[[:blank:]]*csgo\/addons\/metamod" "$GAMEINFO_FILE"; then # match any whitespace
+        echo "File gameinfo.gi already configured. No changes were made."
+    else
+        awk -v new_entry="$GAMEINFO_ENTRY" '
+            BEGIN { found=0; }
+            // {
+                if (found) {
+                    print new_entry;
+                    found=0;
+                }
+                print;
+            }
+            /Game_LowViolence/ { found=1; }
+        ' "$GAMEINFO_FILE" > "$GAMEINFO_FILE.tmp" && mv "$GAMEINFO_FILE.tmp" "$GAMEINFO_FILE"
+
+        echo "The file ${GAMEINFO_FILE} has been configured for MetaMod successfully."
+    fi
+fi
+
+temp_folder="/home/container/temp"
+version_file="/home/container/game/CSS_VERSION.txt"
+dotnet_folder="/home/container/game/csgo/addons/counterstrikesharp/dotnet"
+
+# Update CounterStrikeSharp
+update_css() {
+    if [ ${CSS_UPDATE} -eq 1 ]; then
+        # Check CSS version and download latest release if needed
+        # Get latest release version from GitHub
+        latest_version=$(curl -sSL "https://api.github.com/repos/roflmuffin/CounterStrikeSharp/releases/latest" | jq -r '.tag_name')
+        # Check if curl command was successful
+        if [ $? -ne 0 ]; then
+            echo "Failed to fetch latest version. Please check your internet connection."
+            return
+        fi
+        # Get current version from file
+        if [ -f ${version_file} ]; then
+            current_version=$(cat ${version_file})
+        else
+            current_version="0.0.0"
+        fi
+        # Check if version is different
+        if [ "${latest_version}" != "${current_version}" ]; then
+            # Download latest release
+            echo "Downloading CounterStrikeSharp ${latest_version}"
+            mkdir -p ${temp_folder}
+            cd ${temp_folder}
+            
+            # Determine download URL based on the presence of the dotnet folder
+            if [ -d "${dotnet_folder}" ]; then
+                download_url=$(curl -sSL "https://api.github.com/repos/roflmuffin/CounterStrikeSharp/releases/latest" | jq -r '.assets[] | select((.name? // empty | type == "string") and (.name | test("linux")) and (.name | test("runtime") | not)) | .browser_download_url' | head -n 1)
+            else
+                download_url=$(curl -sSL "https://api.github.com/repos/roflmuffin/CounterStrikeSharp/releases/latest" | jq -r '.assets[] | select((.name? // empty | type == "string") and (.name | test("with-runtime")) and (.name | test("linux"))) | .browser_download_url' | head -n 1)
+            fi
+
+            curl -sSLO ${download_url}
+            # Check if curl command was successful
+            if [ $? -ne 0 ]; then
+                echo "Failed to download latest version. Please check your internet connection."
+                return
+            fi
+            # Extract files
+            unzip -o counterstrikesharp-build-*.zip -d /home/container/game/csgo/
+            # Update version file
+            echo ${latest_version} > ${version_file}
+            # Cleanup
+            rm -rf ${temp_folder}
+            echo "CounterStrikeSharp updated to ${latest_version}"
+            cd /home/container
+        fi    
+    fi
 }
+
+update_css
+
+# Replace Startup Variables
+MODIFIED_STARTUP=`eval echo $(echo ${STARTUP} | sed -e 's/{{/${/g' -e 's/}}/
