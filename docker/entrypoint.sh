@@ -27,24 +27,24 @@ if [ ! -z ${SRCDS_APPID} ]; then
                     fi
                 fi
             else
-                if [ ${SRCDS_VALIDATE} -eq 1 ]; then
+                if [ ${SRCDS_VALIDATE} -eq 1]; then
                     if [ ! -z ${SRCDS_LOGIN} ]; then
                         STEAMCMD="./steamcmd/steamcmd.sh +login ${SRCDS_LOGIN} ${SRCDS_LOGIN_PASS} +force_install_dir /home/container +app_update ${SRCDS_APPID} -beta ${SRCDS_BETAID} validate +quit"
-                    else             
+                    else
                         STEAMCMD="./steamcmd/steamcmd.sh +login anonymous +force_install_dir /home/container +app_update ${SRCDS_APPID} -beta ${SRCDS_BETAID} validate +quit"
                     fi
                 else
                     if [ ! -z ${SRCDS_LOGIN} ]; then
                         STEAMCMD="./steamcmd/steamcmd.sh +login ${SRCDS_LOGIN} ${SRCDS_LOGIN_PASS} +force_install_dir /home/container +app_update ${SRCDS_APPID} -beta ${SRCDS_BETAID} +quit"
-                    else 
+                    else
                         STEAMCMD="./steamcmd/steamcmd.sh +login anonymous +force_install_dir /home/container +app_update ${SRCDS_APPID} -beta ${SRCDS_BETAID} +quit"
                     fi
                 fi
             fi
         else
             if [ ${SRCDS_VALIDATE} -eq 1 ]; then
-            echo "SteamCMD Validate Flag Enabled! Triggered install validation for AppID: ${SRCDS_APPID}"
-            echo "THIS MAY WIPE CUSTOM CONFIGURATIONS! Please stop the server if this was not intended."
+                echo "SteamCMD Validate Flag Enabled! Triggered install validation for AppID: ${SRCDS_APPID}"
+                echo "THIS MAY WIPE CUSTOM CONFIGURATIONS! Please stop the server if this was not intended."
                 if [ ! -z ${SRCDS_LOGIN} ]; then
                     STEAMCMD="./steamcmd/steamcmd.sh +login ${SRCDS_LOGIN} ${SRCDS_LOGIN_PASS} +force_install_dir /home/container +app_update ${SRCDS_APPID} validate +quit"
                 else
@@ -94,6 +94,8 @@ fi
 
 temp_folder="/home/container/temp"
 version_file="/home/container/game/CSS_VERSION.txt"
+dotnet_folder="/home/container/game/csgo/addons/counterstrikesharp/dotnet"
+
 # Update CounterStrikeSharp
 update_css() {
     if [ ${CSS_UPDATE} -eq 1 ]; then
@@ -117,14 +119,22 @@ update_css() {
             echo "Downloading CounterStrikeSharp ${latest_version}"
             mkdir -p ${temp_folder}
             cd ${temp_folder}
-            curl -sSLO $(curl -sSL "https://api.github.com/repos/roflmuffin/CounterStrikeSharp/releases/latest" | jq -r '.assets[] | select(.name | test("linux")) | .browser_download_url' | head -n 1)
+            
+            # Determine download URL based on the presence of the dotnet folder
+            if [ -d "${dotnet_folder}" ]; then
+                download_url=$(curl -sSL "https://api.github.com/repos/roflmuffin/CounterStrikeSharp/releases/latest" | jq -r '.assets[] | select((.name? // empty | type == "string") and (.name | test("linux")) and (.name | test("runtime") | not)) | .browser_download_url' | head -n 1)
+            else
+                download_url=$(curl -sSL "https://api.github.com/repos/roflmuffin/CounterStrikeSharp/releases/latest" | jq -r '.assets[] | select((.name? // empty | type == "string") and (.name | test("with-runtime")) and (.name | test("linux"))) | .browser_download_url' | head -n 1)
+            fi
+
+            curl -sSLO ${download_url}
             # Check if curl command was successful
             if [ $? -ne 0 ]; then
                 echo "Failed to download latest version. Please check your internet connection."
                 return
             fi
             # Extract files
-            unzip -o counterstrikesharp-build-*.zip -d /home/container/game/csgo/
+            unzip -o counterstrikesharp-* -d /home/container/game/csgo/
             # Update version file
             echo ${latest_version} > ${version_file}
             # Cleanup
