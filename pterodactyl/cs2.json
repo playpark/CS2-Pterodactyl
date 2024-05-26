@@ -4,7 +4,7 @@
         "version": "PTDL_v2",
         "update_url": null
     },
-    "exported_at": "2024-04-29T23:44:45+02:00",
+    "exported_at": "2024-05-26T17:48:45+02:00",
     "name": "Counter-Strike 2 (All-in-One)",
     "author": "dollan@playpark.se",
     "description": "Counter-Strike is a multiplayer first-person shooter video game developed by Valve. This image is based on Valve's Steam Runtime 3 platform (codenamed SNIPER) and was created to run both CSGO and CS2 without issues. All in one egg, metamod is installed by default. CounterStrikeSharp can be enabled in the Startup tab.",
@@ -79,46 +79,6 @@
             "user_viewable": true,
             "user_editable": true,
             "rules": "required|numeric",
-            "field_type": "text"
-        },
-        {
-            "name": "SteamCMD Beta Name",
-            "description": "Set the ID of the beta to install and launch. Leave blank to disable Beta loading.",
-            "env_variable": "SRCDS_BETAID",
-            "default_value": "",
-            "user_viewable": true,
-            "user_editable": true,
-            "rules": "max:64",
-            "field_type": "text"
-        },
-        {
-            "name": "SteamCMD Beta Password",
-            "description": "If required, set the password to use to access a Beta depot. Leave blank to disable.",
-            "env_variable": "SRCDS_BETAPASS",
-            "default_value": "",
-            "user_viewable": true,
-            "user_editable": true,
-            "rules": "max:64",
-            "field_type": "text"
-        },
-        {
-            "name": "SteamCMD Login Username",
-            "description": "Set SteamCMD Login Username. Leave blank to disable.",
-            "env_variable": "SRCDS_LOGIN",
-            "default_value": "",
-            "user_viewable": true,
-            "user_editable": true,
-            "rules": "required|max:64|alpha_dash",
-            "field_type": "text"
-        },
-        {
-            "name": "SteamCMD Login Password",
-            "description": "Set SteamCMD Login Password.",
-            "env_variable": "SRCDS_LOGIN_PASS",
-            "default_value": "",
-            "user_viewable": true,
-            "user_editable": true,
-            "rules": "required|max:64|alpha_dash",
             "field_type": "text"
         },
         {
