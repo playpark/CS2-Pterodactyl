@@ -85,7 +85,7 @@ install_metamod() {
         fi
         curl -sSLO ${latest_version}
         # Extract files
-        tar -xzf metamod*.tar.gz -C /home/container/game/csgo/
+        tar -xzf mmsource*.tar.gz -C /home/container/game/csgo/
         rm -rf ${temp_folder}
         cd /home/container
     fi
