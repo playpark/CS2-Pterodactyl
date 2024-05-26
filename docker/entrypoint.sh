@@ -27,7 +27,7 @@ if [ ! -z ${SRCDS_APPID} ]; then
                     fi
                 fi
             else
-                if [ ${SRCDS_VALIDATE} -eq 1]; then
+                if [ ${SRCDS_VALIDATE} -eq 1 ]; then
                     if [ ! -z ${SRCDS_LOGIN} ]; then
                         STEAMCMD="./steamcmd/steamcmd.sh +login ${SRCDS_LOGIN} ${SRCDS_LOGIN_PASS} +force_install_dir /home/container +app_update ${SRCDS_APPID} -beta ${SRCDS_BETAID} validate +quit"
                     else
