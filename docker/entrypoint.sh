@@ -76,7 +76,7 @@ install_metamod() {
     if [ ! -d "/home/container/game/csgo/addons/metamod" ]; then
         mkdir -p ${temp_folder}
         cd ${temp_folder}
-        echo "Installing MetaMod"
+        echo "Installing Metamod"
         # Download MetaMod
         latest_version=$(curl -sSL "https://www.metamodsource.net/downloads.php/?branch=master" | pup '.quick-download' | pup 'a attr{href}' | grep 'linux')
         if [ $? -ne 0 ]; then
@@ -88,6 +88,7 @@ install_metamod() {
         tar -xzf mmsource*.tar.gz -C /home/container/game/csgo/
         rm -rf ${temp_folder}
         cd /home/container
+        echo "Metamod installed successfully"
     fi
 }
 
@@ -147,9 +148,9 @@ update_css() {
             
             # Determine download URL based on the presence of the dotnet folder
             if [ -d "${dotnet_folder}" ]; then
-                echo "Downloading CounterStrikeSharp with runtime (You do not have the .NET runtime installed for CS#)"
                 download_url=$(curl -sSL "https://api.github.com/repos/roflmuffin/CounterStrikeSharp/releases/latest" | jq -r '.assets[] | select((.name? // empty | type == "string") and (.name | test("linux")) and (.name | test("runtime") | not)) | .browser_download_url' | head -n 1)
             else
+                echo "Downloading CounterStrikeSharp with runtime (You do not have the .NET runtime installed for CS#)"
                 download_url=$(curl -sSL "https://api.github.com/repos/roflmuffin/CounterStrikeSharp/releases/latest" | jq -r '.assets[] | select((.name? // empty | type == "string") and (.name | test("with-runtime")) and (.name | test("linux"))) | .browser_download_url' | head -n 1)
             fi
 
