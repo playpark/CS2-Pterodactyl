@@ -145,6 +145,7 @@ update_css() {
             
             # Determine download URL based on the presence of the dotnet folder
             if [ -d "${dotnet_folder}" ]; then
+                echo "Downloading CounterStrikeSharp with runtime (You do not have the .NET runtime installed for CS#)"
                 download_url=$(curl -sSL "https://api.github.com/repos/roflmuffin/CounterStrikeSharp/releases/latest" | jq -r '.assets[] | select((.name? // empty | type == "string") and (.name | test("linux")) and (.name | test("runtime") | not)) | .browser_download_url' | head -n 1)
             else
                 download_url=$(curl -sSL "https://api.github.com/repos/roflmuffin/CounterStrikeSharp/releases/latest" | jq -r '.assets[] | select((.name? // empty | type == "string") and (.name | test("with-runtime")) and (.name | test("linux"))) | .browser_download_url' | head -n 1)
