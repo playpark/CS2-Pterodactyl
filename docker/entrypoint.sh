@@ -77,10 +77,12 @@ install_metamod() {
         mkdir -p ${temp_folder}
         cd ${temp_folder}
         echo "Installing MetaMod"
-        mkdir -p /home/container/game/csgo/addons/metamod
-        cd /home/container/game/csgo/addons/metamod
         # Download MetaMod
         latest_version=$(curl -sSL "https://www.metamodsource.net/downloads.php/?branch=master" | pup '.quick-download' | pup 'a attr{href}' | grep 'linux')
+        if [ $? -ne 0 ]; then
+            echo "Failed to download MetaMod. Please check your internet connection"
+            return
+        fi
         curl -sSLO ${latest_version}
         # Extract files
         tar -xzf metamod*.tar.gz -C /home/container/game/csgo/
