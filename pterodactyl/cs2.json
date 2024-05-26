@@ -5,9 +5,9 @@
         "update_url": null
     },
     "exported_at": "2024-04-29T23:44:45+02:00",
-    "name": "Counter-Strike 2 (CS#)",
+    "name": "Counter-Strike 2 (All-in-One)",
     "author": "dollan@playpark.se",
-    "description": "Counter-Strike is a multiplayer first-person shooter video game developed by Valve. This image is based on Valve's Steam Runtime 3 platform (codenamed SNIPER) and was created to run both CSGO and CS2 without issues. This egg features the ability to automatically update and install CS# on server start if enabled. This is forked from https://github.com/1zc/CS2-Pterodactyl full credit to the original author.",
+    "description": "Counter-Strike is a multiplayer first-person shooter video game developed by Valve. This image is based on Valve's Steam Runtime 3 platform (codenamed SNIPER) and was created to run both CSGO and CS2 without issues. All in one egg, metamod is installed by default. CounterStrikeSharp can be enabled in the Startup tab.",
     "features": [
         "gsl_token",
         "steam_disk_space"
