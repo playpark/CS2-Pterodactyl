@@ -68,6 +68,29 @@ if [ ! -z ${SRCDS_APPID} ]; then
     fi
 fi
 
+temp_folder="/home/container/temp"
+
+# Install MetaMod for first time installs
+install_metamod() {
+    # Check if MetaMod is installed
+    if [ ! -d "/home/container/game/csgo/addons/metamod" ]; then
+        mkdir -p ${temp_folder}
+        cd ${temp_folder}
+        echo "Installing MetaMod"
+        mkdir -p /home/container/game/csgo/addons/metamod
+        cd /home/container/game/csgo/addons/metamod
+        # Download MetaMod
+        latest_version=$(curl -sSL "https://www.metamodsource.net/downloads.php/?branch=master" | pup '.quick-download' | pup 'a attr{href}' | grep 'linux')
+        curl -sSLO ${latest_version}
+        # Extract files
+        tar -xzf metamod*.tar.gz -C /home/container/game/csgo/
+        rm -rf ${temp_folder}
+        cd /home/container
+    fi
+}
+
+install_metamod
+
 # Edit /home/container/game/csgo/gameinfo.gi to add MetaMod path
 # Credit: https://github.com/ghostcap-gaming/ACMRS-cs2-metamod-update-fix/blob/main/acmrs.sh
 GAMEINFO_FILE="/home/container/game/csgo/gameinfo.gi"
@@ -92,7 +115,7 @@ if [ -f "${GAMEINFO_FILE}" ]; then
     fi
 fi
 
-temp_folder="/home/container/temp"
+
 version_file="/home/container/game/CSS_VERSION.txt"
 dotnet_folder="/home/container/game/csgo/addons/counterstrikesharp/dotnet"
 
