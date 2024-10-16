@@ -100,7 +100,7 @@ update_metamod() {
     if [ "${latest_version}" != "${current_version}" ]; then
         echo "MetaMod update available. Updating..."
         # Download latest release
-        echo "Downloading MetaMod ${latest_version}"
+        echo "Starting MetaMod update..."
         mkdir -p ${temp_folder}
         cd ${temp_folder}
         # Extract files
@@ -109,8 +109,12 @@ update_metamod() {
         echo "Extracting MetaMod ${latest_version}"
         # Extract files
         tar -xzf mmsource*.tar.gz -C /home/container/game/csgo/
+        echo "Cleaning up..."
         rm -rf ${temp_folder}
         echo "Metamod installed successfully"
+        echo ${latest_version} > ${metamod_version_file}
+        echo "MetaMod updated to ${latest_version}"
+        cd /home/container
     fi
 }
 
