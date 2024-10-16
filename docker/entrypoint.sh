@@ -70,51 +70,9 @@ fi
 
 temp_folder="/home/container/temp"
 metamod_version_file="/home/container/game/METAMOD_VERSION.txt"
-# Install MetaMod if there is an update
-if [ -f "${metamod_version_file}" ]; then
-    metamod_version=$(cat "${metamod_version_file}")
-    
-install_metamod() {
-    latest_version=$(curl -sSL "https://api.github.com/repos/roflmuffin/CounterStrikeSharp/releases/latest" | jq -r '.tag_name')
-        # Check if curl command was successful
-        if [ $? -ne 0 ]; then
-            echo "Failed to fetch latest version. Please check your internet connection."
-            return
-        # Get current version from file
-        if [ -f ${version_file} ]; then
-            current_version=$(cat ${version_file})
-        else
-            current_version="0.0.0"
-        fi
-    # Check if MetaMod is installed
-    if [ ! -d "/home/container/game/csgo/addons/metamod" ]; then
-        mkdir -p ${temp_folder}
-        cd ${temp_folder}
-        echo "Installing Metamod"
-        # Download MetaMod
-        latest_version=$(curl -sSL "https://www.metamodsource.net/downloads.php/?branch=master" | pup '.quick-download' | pup 'a attr{href}' | grep 'linux')
-        if [ $? -ne 0 ]; then
-            echo "Failed to download MetaMod. Please check your internet connection"
-            return
-        fi
-        curl -sSLO ${latest_version}
-        # Extract files
-        tar -xzf mmsource*.tar.gz -C /home/container/game/csgo/
-        rm -rf ${temp_folder}
-        cd /home/container
-        echo "Metamod installed successfully"
-    fi
-}
-
-install_metamod
 
 update_metamod() {
-    # Check if MetaMod is installed
-    if [ ! -d "/home/container/game/csgo/addons/metamod" ]; then
-        echo "Metamod not installed. Skipping update."
-        return
-    fi
-
+    echo "Checking for MetaMod updates"
     # Check if MetaMod is up to date
     latest_version_url=$(curl -sSL "https://www.metamodsource.net/downloads.php/?branch=master" | pup '.quick-download' | pup 'a attr{href}' | grep 'linux')
     if [ $? -ne 0 ]; then
@@ -128,26 +86,35 @@ update_metamod() {
         return
     fi
 
+    echo "Latest MetaMod version: $latest_version"
+
     if [ -f ${metamod_version_file} ]; then
             current_version=$(cat ${metamod_version_file})
         else
             current_version="0.0.0"
         fi
     
+    echo "Current MetaMod version: $current_version"
+
     # Compare version
     if [ "${latest_version}" != "${current_version}" ]; then
+        echo "MetaMod update available. Updating..."
         # Download latest release
         echo "Downloading MetaMod ${latest_version}"
         mkdir -p ${temp_folder}
         cd ${temp_folder}
         # Extract files
+        echo "Downloading MetaMod ${latest_version}"
         curl -sSLO ${latest_version_url}
+        echo "Extracting MetaMod ${latest_version}"
         # Extract files
         tar -xzf mmsource*.tar.gz -C /home/container/game/csgo/
         rm -rf ${temp_folder}
         echo "Metamod installed successfully"
     fi
 }
+
+update_metamod
 
 # Edit /home/container/game/csgo/gameinfo.gi to add MetaMod path
 # Credit: https://github.com/ghostcap-gaming/ACMRS-cs2-metamod-update-fix/blob/main/acmrs.sh
