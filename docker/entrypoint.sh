@@ -176,7 +176,7 @@ update_css() {
         if [ "$version_tag" = "null" ] || [ -z "$version_tag" ]; then
             print_message "${COLOR_RED}Error: Failed to extract version tag from GitHub response.${COLOR_RESET}"
             return 1
-        }
+        fi
         
         if [ -f ${version_file} ]; then
             current_version=$(cat ${version_file})
