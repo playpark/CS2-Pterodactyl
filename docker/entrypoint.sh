@@ -170,13 +170,13 @@ update_css() {
             return 1
         fi
 
-        version_tag=$(echo "$latest_version" | jq -r '.tag_name')
-        print_message "${COLOR_GREEN}Latest available version: ${COLOR_WHITE}$version_tag${COLOR_RESET}"
-        
-        if [ "$version_tag" = "null" ] || [ -z "$version_tag" ]; then
-            print_message "${COLOR_RED}Error: Failed to extract version tag from GitHub response.${COLOR_RESET}"
-            return 1
-        fi
+        version_tag=$(echo "$latest_version" | jq -r '.tag_name' 2>/dev/null || echo "")
+if [ -z "$version_tag" ] || [ "$version_tag" = "null" ]; then
+    print_message "${COLOR_RED}Error: Failed to extract version tag. Raw tag value: ${version_tag}${COLOR_RESET}"
+    print_message "${COLOR_RED}Debug - attempting to parse response:${COLOR_RESET}"
+    echo "$latest_version" | jq '.'
+    return 1
+fi
         
         if [ -f ${version_file} ]; then
             current_version=$(cat ${version_file})
