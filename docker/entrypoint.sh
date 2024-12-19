@@ -147,57 +147,105 @@ fi
 
 version_file="/home/container/game/CSS_VERSION.txt"
 dotnet_folder="/home/container/game/csgo/addons/counterstrikesharp/dotnet"
+temp_folder="/home/container/temp"
 
-# Update CounterStrikeSharp
 update_css() {
     if [ ${CSS_UPDATE} -eq 1 ]; then
-        # Check CSS version and download latest release if needed
-        # Get latest release version from GitHub
-        latest_version=$(curl -sSL "https://api.github.com/repos/roflmuffin/CounterStrikeSharp/releases/latest" | jq -r '.tag_name')
-        # Check if curl command was successful
-        if [ $? -ne 0 ]; then
-            echo "Failed to fetch latest version. Please check your internet connection."
-            return
+        echo "Checking for CounterStrikeSharp updates..."
+        
+        # Get latest release version from GitHub with proper User-Agent
+        latest_version=$(curl -sSL -H "User-Agent: CSS-Update-Script" \
+            "https://api.github.com/repos/roflmuffin/CounterStrikeSharp/releases/latest")
+        
+        # Check if curl command was successful and returned valid JSON
+        if [ $? -ne 0 ] || [ -z "$latest_version" ]; then
+            echo "Error: Failed to fetch latest version from GitHub API. Please check your internet connection."
+            return 1
         fi
+
+        # Extract version tag
+        version_tag=$(echo "$latest_version" | jq -r '.tag_name')
+        if [ "$version_tag" = "null" ] || [ -z "$version_tag" ]; then
+            echo "Error: Failed to extract version tag from GitHub response."
+            return 1
+        fi
+        
+        echo "Latest available version: $version_tag"
+
         # Get current version from file
         if [ -f ${version_file} ]; then
             current_version=$(cat ${version_file})
+            echo "Current installed version: $current_version"
         else
             current_version="0.0.0"
+            echo "No current version found, assuming fresh installation"
         fi
+
         # Check if version is different
-        if [ "${latest_version}" != "${current_version}" ]; then
-            # Download latest release
-            echo "Downloading CounterStrikeSharp ${latest_version}"
-            mkdir -p ${temp_folder}
-            cd ${temp_folder}
+        if [ "${version_tag}" != "${current_version}" ]; then
+            echo "Update required: ${current_version} -> ${version_tag}"
             
-            # Determine download URL based on the presence of the dotnet folder
+            # Create temp directory
+            mkdir -p ${temp_folder}
+            cd ${temp_folder} || { echo "Failed to create/access temp directory"; return 1; }
+            
+            # Determine appropriate download URL based on runtime presence
             if [ -d "${dotnet_folder}" ]; then
-                download_url=$(curl -sSL "https://api.github.com/repos/roflmuffin/CounterStrikeSharp/releases/latest" | jq -r '.assets[] | select((.name? // empty | type == "string") and (.name | test("linux")) and (.name | test("runtime") | not)) | .browser_download_url' | head -n 1)
+                echo "Existing .NET runtime detected, downloading core package..."
+                download_url=$(echo "$latest_version" | jq -r '.assets[] | select((.name | test("linux")) and (.name | test("runtime") | not)) | .browser_download_url' | head -n 1)
             else
-                echo "Downloading CounterStrikeSharp with runtime (You do not have the .NET runtime installed for CS#)"
-                download_url=$(curl -sSL "https://api.github.com/repos/roflmuffin/CounterStrikeSharp/releases/latest" | jq -r '.assets[] | select((.name? // empty | type == "string") and (.name | test("with-runtime")) and (.name | test("linux"))) | .browser_download_url' | head -n 1)
+                echo "No .NET runtime detected, downloading package with runtime..."
+                download_url=$(echo "$latest_version" | jq -r '.assets[] | select((.name | test("with-runtime")) and (.name | test("linux"))) | .browser_download_url' | head -n 1)
             fi
 
-            curl -sSLO ${download_url}
-            # Check if curl command was successful
-            if [ $? -ne 0 ]; then
-                echo "Failed to download latest version. Please check your internet connection."
-                return
+            # Validate download URL
+            if [ -z "$download_url" ] || [ "$download_url" = "null" ]; then
+                echo "Error: Failed to determine download URL"
+                cd /home/container
+                rm -rf ${temp_folder}
+                return 1
             fi
-            # Extract files
-            unzip -o counterstrikesharp-* -d /home/container/game/csgo/
-            # Update version file
-            echo ${latest_version} > ${version_file}
-            # Cleanup
-            rm -rf ${temp_folder}
-            echo "CounterStrikeSharp updated to ${latest_version}"
-            cd /home/container
-        fi    
+
+            echo "Downloading from: $download_url"
+            
+            # Download the package
+            if curl -sSLO "$download_url"; then
+                echo "Download completed successfully"
+                
+                # Extract files with error checking
+                if unzip -o counterstrikesharp-* -d /home/container/game/csgo/; then
+                    echo "Successfully extracted CounterStrikeSharp files"
+                    echo "${version_tag}" > ${version_file}
+                    echo "Updated version file to ${version_tag}"
+                else
+                    echo "Error: Failed to extract files"
+                    cd /home/container
+                    rm -rf ${temp_folder}
+                    return 1
+                fi
+                
+                # Cleanup
+                cd /home/container
+                rm -rf ${temp_folder}
+                echo "CounterStrikeSharp successfully updated to ${version_tag}"
+                return 0
+            else
+                echo "Error: Failed to download package"
+                cd /home/container
+                rm -rf ${temp_folder}
+                return 1
+            fi
+        else
+            echo "CounterStrikeSharp is already up to date (version ${current_version})"
+            return 0
+        fi
+    else
+        echo "CSS_UPDATE is not enabled, skipping update check"
+        return 0
     fi
 }
 
+# Run the update function
 update_css
 
 # Replace Startup Variables
