@@ -165,13 +165,13 @@ update_css() {
 
         # Extract version tag
         version_tag=$(echo "$latest_version" | jq -r '.tag_name')
+        echo "Latest available version: $version_tag"
+        
         if [ "$version_tag" = "null" ] || [ -z "$version_tag" ]; then
             echo "Error: Failed to extract version tag from GitHub response."
             return 1
         fi
         
-        echo "Latest available version: $version_tag"
-
         # Get current version from file
         if [ -f ${version_file} ]; then
             current_version=$(cat ${version_file})
@@ -189,13 +189,17 @@ update_css() {
             mkdir -p ${temp_folder}
             cd ${temp_folder} || { echo "Failed to create/access temp directory"; return 1; }
             
+            # Define download patterns
+            linux_pattern="counterstrikesharp-build-.*-linux"
+            linux_runtime_pattern="counterstrikesharp-with-runtime.*-linux"
+            
             # Determine appropriate download URL based on runtime presence
             if [ -d "${dotnet_folder}" ]; then
                 echo "Existing .NET runtime detected, downloading core package..."
-                download_url=$(echo "$latest_version" | jq -r '.assets[] | select((.name | test("linux")) and (.name | test("runtime") | not)) | .browser_download_url' | head -n 1)
+                download_url=$(echo "$latest_version" | jq -r --arg pattern "$linux_pattern" '.assets[] | select(.name | test($pattern)) | .browser_download_url' | head -n 1)
             else
                 echo "No .NET runtime detected, downloading package with runtime..."
-                download_url=$(echo "$latest_version" | jq -r '.assets[] | select((.name | test("with-runtime")) and (.name | test("linux"))) | .browser_download_url' | head -n 1)
+                download_url=$(echo "$latest_version" | jq -r --arg pattern "$linux_runtime_pattern" '.assets[] | select(.name | test($pattern)) | .browser_download_url' | head -n 1)
             fi
 
             # Validate download URL
