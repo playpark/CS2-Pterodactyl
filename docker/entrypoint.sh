@@ -162,6 +162,7 @@ update_css() {
     if [ ${CSS_UPDATE} -eq 1 ]; then
         print_message "${COLOR_BLUE}Checking for CounterStrikeSharp updates...${COLOR_RESET}"
         
+        # Fetch latest release info from GitHub API
         latest_version=$(curl -sSL -H "User-Agent: CSS-Update-Script" \
             "https://api.github.com/repos/roflmuffin/CounterStrikeSharp/releases/latest")
         
@@ -170,13 +171,17 @@ update_css() {
             return 1
         fi
 
+        # Extract version tag (e.g., v1.0.315)
         version_tag=$(echo "$latest_version" | jq -r '.tag_name' 2>/dev/null || echo "")
-if [ -z "$version_tag" ] || [ "$version_tag" = "null" ]; then
-    print_message "${COLOR_RED}Error: Failed to extract version tag. Raw tag value: ${version_tag}${COLOR_RESET}"
-    print_message "${COLOR_RED}Debug - attempting to parse response:${COLOR_RESET}"
-    echo "$latest_version" | jq '.'
-    return 1
-fi
+        if [ -z "$version_tag" ] || [ "$version_tag" = "null" ]; then
+            print_message "${COLOR_RED}Error: Failed to extract version tag. Raw tag value: ${version_tag}${COLOR_RESET}"
+            print_message "${COLOR_RED}Debug - attempting to parse response:${COLOR_RESET}"
+            echo "$latest_version" | jq '.'
+            return 1
+        fi
+        
+        # Remove 'v' prefix from version tag for comparison
+        version_number=${version_tag#v}
         
         if [ -f ${version_file} ]; then
             current_version=$(cat ${version_file})
@@ -186,8 +191,8 @@ fi
             print_message "${COLOR_YELLOW}No current version found, assuming fresh installation${COLOR_RESET}"
         fi
 
-        if [ "${version_tag}" != "${current_version}" ]; then
-            print_message "${COLOR_YELLOW}Update required: ${current_version} -> ${version_tag}${COLOR_RESET}"
+        if [ "${version_number}" != "${current_version}" ]; then
+            print_message "${COLOR_YELLOW}Update required: ${current_version} -> ${version_number}${COLOR_RESET}"
             
             mkdir -p ${temp_folder}
             cd ${temp_folder} || { 
@@ -195,16 +200,9 @@ fi
                 return 1
             }
             
-            linux_pattern="counterstrikesharp-build-.*-linux"
-            linux_runtime_pattern="counterstrikesharp-with-runtime.*-linux"
-            
-            if [ -d "${dotnet_folder}" ]; then
-                print_message "${COLOR_BLUE}Existing .NET runtime detected, downloading core package...${COLOR_RESET}"
-                download_url=$(echo "$latest_version" | jq -r --arg pattern "$linux_pattern" '.assets[] | select(.name | test($pattern)) | .browser_download_url' | head -n 1)
-            else
-                print_message "${COLOR_BLUE}No .NET runtime detected, downloading package with runtime...${COLOR_RESET}"
-                download_url=$(echo "$latest_version" | jq -r --arg pattern "$linux_runtime_pattern" '.assets[] | select(.name | test($pattern)) | .browser_download_url' | head -n 1)
-            fi
+            # Look for Linux-specific assets
+            linux_pattern="counterstrikesharp.*linux"
+            download_url=$(echo "$latest_version" | jq -r --arg pattern "$linux_pattern" '.assets[] | select(.name | test($pattern)) | .browser_download_url' | head -n 1)
 
             if [ -z "$download_url" ] || [ "$download_url" = "null" ]; then
                 print_message "${COLOR_RED}Error: Failed to determine download URL${COLOR_RESET}"
@@ -220,8 +218,8 @@ fi
                 
                 if unzip -o counterstrikesharp-* -d /home/container/game/csgo/; then
                     print_message "${COLOR_GREEN}Successfully extracted CounterStrikeSharp files${COLOR_RESET}"
-                    echo "${version_tag}" > ${version_file}
-                    print_message "${COLOR_GREEN}Updated version file to ${COLOR_WHITE}${version_tag}${COLOR_RESET}"
+                    echo "${version_number}" > ${version_file}
+                    print_message "${COLOR_GREEN}Updated version file to ${COLOR_WHITE}${version_number}${COLOR_RESET}"
                 else
                     print_message "${COLOR_RED}Error: Failed to extract files${COLOR_RESET}"
                     cd /home/container
@@ -231,7 +229,7 @@ fi
                 
                 cd /home/container
                 rm -rf ${temp_folder}
-                print_message "${COLOR_GREEN}CounterStrikeSharp successfully updated to ${COLOR_WHITE}${version_tag}${COLOR_RESET}"
+                print_message "${COLOR_GREEN}CounterStrikeSharp successfully updated to ${COLOR_WHITE}${version_number}${COLOR_RESET}"
                 return 0
             else
                 print_message "${COLOR_RED}Error: Failed to download package${COLOR_RESET}"
